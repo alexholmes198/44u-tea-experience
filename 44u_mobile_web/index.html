@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Breathe and Take a Sip</title>
+    <style>
+        :root {
+            /* Palette & Design System */
+            --bg-top: #E748F1;
+            --bg-bottom: #F9F8F3;
+            --bg-soundscape: #F9F8F3; /* Cream / Off-White */
+            --accent-glow: #F9F8F3;
+            
+            /* Text Colors */
+            --text-primary-dark: #ffffff;
+            --text-secondary-dark: #ffffff;
+            
+            --text-primary-light: #1c2b26; /* Dark slate/black for soundscape */
+            --text-secondary-light: #4b5563; /* Medium charcoal for body text */
+            
+            --font-main: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-bottom);
+            color: var(--text-primary-dark);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 414px;
+            height: 100%;
+            max-height: 896px;
+            position: relative;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .viewport-slider {
+            width: 100%;
+            height: 200%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+
+        .viewport-slider.show-soundscape {
+            transform: translateY(-50%);
+        }
+
+        .page {
+            width: 100%;
+            height: 50%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        /* --- MAIN PAGE --- */
+        #main-page {
+            justify-content: space-between;
+            z-index: 1;
+        }
+
+        /* Logo container for main page centered */
+        .logo-placeholder-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            background: transparent;
+            flex-shrink: 0;
+            margin: 0 auto;
+        }
+
+        /* Scaled up, square image styling for main page */
+        .logo-placeholder-main .large-logo-img {
+            width: 180px;
+            height: 180px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        /* Small circular logo style kept for soundscape & overlay controls */
+        .logo-placeholder {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-secondary-dark);
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.2s ease;
+            background: rgba(255, 255, 255, 0);
+            flex-shrink: 0;
+        }
+
+        .logo-placeholder.dark-theme {
+            border-color: rgba(0, 0, 0, 0);
+            color: var(--text-primary-light);
+            background: rgba(0, 0, 0, 0);
+        }
+
+        .hero-content {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        h1.headline {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        p.body-text {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: var(--text-secondary-dark);
+            max-width: 310px;
+            font-weight: 400;
+        }
+
+        .word-carousel-container {
+            height: 70px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            margin: 10px 0;
+            cursor: pointer;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+        }
+
+        .word-carousel-track {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            animation: scrollDown 10s linear infinite;
+        }
+
+        .carousel-word {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-primary-dark);
+        }
+
+        @keyframes scrollDown {
+            0% { transform: translateY(-280px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .swipe-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding-bottom: 12px;
+            animation: pulseSlow 2s ease-in-out infinite;
+        }
+
+        .swipe-control p {
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary-dark);
+        }
+
+        .arrow-down {
+            width: 16px;
+            height: 16px;
+            border-right: 2px solid var(--text-secondary-dark);
+            border-bottom: 2px solid var(--text-secondary-dark);
+            transform: rotate(45deg);
+        }
+
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 0.5; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(4px); }
+        }
+
+        /* --- PICKER OVERLAY --- */
+        #picker-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        #picker-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .picker-stage {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .picker-words-wrapper {
+            position: relative;
+            height: 80px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .picker-words-wrapper.shifted {
+            transform: translateY(-80px);
+        }
+
+        .picker-word-slot {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.1s linear, filter 0.4s ease, color 0.4s ease, transform 0.4s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        .picker-word-slot.active-roll {
+            opacity: 1;
+        }
+
+        .picker-word-slot.winner {
+            opacity: 1;
+            color: var(--accent-glow);
+            text-shadow: 0 0 20px rgba(79, 53, 230, 0.6), 0 0 40px rgba(163, 230, 53, 0.2);
+            transform: scale(1.15);
+        }
+
+        .reflection-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            max-width: 320px;
+            text-align: center;
+            margin-top: -30px;
+        }
+
+        .reflection-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reflection-card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .reflection-card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-secondary-dark);
+        }
+
+        /* --- SOUNDSCAPE PAGE --- */
+        #soundscape-page {
+            background-color: var(--bg-soundscape);
+            color: var(--text-primary-light);
+            justify-content: space-between;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .soundscape-header {
+            margin-bottom: 24px;
+        }
+
+        .soundscape-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary-light);
+        }
+
+        .tea-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+            padding-bottom: 30px;
+        }
+
+        .tea-card {
+            background: transparent;
+            border: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tea-image-container {
+            width: 100%;
+            height: 140px;
+            border-radius: 16px;
+            background: rgba(28, 43, 38, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary-light);
+            font-size: 0.75rem;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tea-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .play-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #1c2b26;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .play-btn:active {
+            transform: scale(0.9);
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 7px 0 7px 12px;
+            border-color: transparent transparent transparent #ffffff;
+            margin-left: 3px;
+        }
+
+        .play-btn.playing .play-icon {
+            border-width: 0;
+            width: 12px;
+            height: 12px;
+            background-color: #ffffff;
+            margin-left: 0;
+        }
+
+        .tea-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary-light);
+        }
+
+        .tea-card p {
+            font-size: 0.875rem;
+            line-height: 1.55;
+            color: var(--text-secondary-light);
+            max-width: 310px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div class="viewport-slider" id="viewportSlider">
+            
+            <!-- MAIN PAGE -->
+            <section class="page" id="main-page">
+                <div class="logo-placeholder-main" title="Logo Container">
+                    <img class="large-logo-img" src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\44_logo.png" alt="Logo">
+                </div>
+
+                <div class="hero-content">
+                    <h1 class="headline">Breathe and<br>Take a Sip.</h1>
+                    <p class="body-text">
+                        Taking a break is not wrong. Making time for yourself is not wrong. Resting your eyes is not wrong. It’s all just a thought.
+                    </p>
+                </div>
+
+                <div class="word-carousel-container" id="carouselTrigger">
+                    <div class="word-carousel-track">
+                        <div class="carousel-word">Chamomile</div>
+                        <div class="carousel-word">Lemon Balm</div>
+                        <div class="carousel-word">Passionflower</div>
+                        <div class="carousel-word">Green Tea</div>
+                        <div class="carousel-word">Chamomile</div>
+                        <div class="carousel-word">Lemon Balm</div>
+                        <div class="carousel-word">Passionflower</div>
+                        <div class="carousel-word">Green Tea</div>
+                    </div>
+                </div>
+
+                <div class="swipe-control" id="swipeDownBtn">
+                    <p>Swipe down to be accompanied.</p>
+                    <div class="arrow-down"></div>
+                </div>
+            </section>
+
+            <!-- SOUNDSCAPE PAGE -->
+            <section class="page" id="soundscape-page">
+                <div class="soundscape-header">
+                    <h2>Soundscapes</h2>
+                </div>
+
+                <div class="tea-grid">
+                    
+                    <!-- TEA 1: CHAMOMILE -->
+                    <div class="tea-card">
+                        <div class="tea-image-container">
+                            <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\chamomile.jpg" alt="Chamomile Image Placeholder">
+                        </div>
+
+                        <h3>Chamomile</h3>
+
+                        <audio class="audio-element" src="file:\C:\Users\Admin\Downloads\tea_experience_works\audio\ss_chamomile.mp3"></audio>
+                        <button class="play-btn" onclick="toggleAudio(this)">
+                            <div class="play-icon"></div>
+                        </button>
+
+                        <p>Allow the subtle floral notes to slow down your thoughts. Listen closely to the calm sequence of sound and allow warmth to wash over you.</p>
+                    </div>
+
+                    <!-- TEA 2: LEMON BALM -->
+                    <div class="tea-card">
+                        <div class="tea-image-container">
+                            <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\lemonbalm.jpg" alt="Lemon Balm Image Placeholder">
+                        </div>
+
+                        <h3>Lemon Balm</h3>
+
+                        <audio class="audio-element" src="file:\C:\Users\Admin\Downloads\tea_experience_works\audio\ss_lemonbalm.mp3"></audio>
+                        <button class="play-btn" onclick="toggleAudio(this)">
+                            <div class="play-icon"></div>
+                        </button>
+
+                        <p>Bright yet grounding. Use this moment to clear away mental clutter and reset your focus on what truly brings you peace.</p>
+                    </div>
+
+                    <!-- TEA 3: PASSIONFLOWER -->
+                    <div class="tea-card">
+                        <div class="tea-image-container">
+                            <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\passionflower02.png" alt="Passionflower Image Placeholder">
+                        </div>
+
+                        <h3>Passionflower</h3>
+
+                        <audio class="audio-element" src="file:\C:\Users\Admin\Downloads\tea_experience_works\audio\ss_passionflower.mp3"></audio>
+                        <button class="play-btn" onclick="toggleAudio(this)">
+                            <div class="play-icon"></div>
+                        </button>
+
+                        <p>Release the need to control every outcome. Breathe in harmony with the gentle resonance of the quiet moments.</p>
+                    </div>
+
+                    <!-- TEA 4: GREEN TEA -->
+                    <div class="tea-card">
+                        <div class="tea-image-container">
+                            <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\greentea.jpg" alt="Green Tea Image Placeholder">
+                        </div>
+
+                        <h3>Green Tea</h3>
+
+                        <audio class="audio-element" src="file:\C:\Users\Admin\Downloads\tea_experience_works\audio\ss_greentea.mp3"></audio>
+                        <button class="play-btn" onclick="toggleAudio(this)">
+                            <div class="play-icon"></div>
+                        </button>
+
+                        <p>Gentle energy and presence. Remind yourself that stillness doesn't mean standing still—it means being aware of where you are.</p>
+                    </div>
+
+                </div>
+
+                <!-- Dark Logo on Cream background back to Main -->
+                <div class="logo-placeholder dark-theme back-to-main" title="Return to Main">
+                      <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\44_logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </section>
+
+        </div>
+
+        <!-- PICKER PAGE OVERLAY -->
+        <div id="picker-overlay">
+            <div style="height: 54px;"></div>
+
+            <div class="picker-stage">
+                <div class="picker-words-wrapper" id="pickerWrapper">
+                    <div class="picker-word-slot" data-index="0">Chamomile</div>
+                    <div class="picker-word-slot" data-index="1">Lemon Balm</div>
+                    <div class="picker-word-slot" data-index="2">Passionflower</div>
+                    <div class="picker-word-slot" data-index="3">Green Tea</div>
+                </div>
+
+                <div class="reflection-card" id="reflectionCard">
+                    <h2 id="reflectionTitle">Tea Meaning</h2>
+                    <p id="reflectionBody">Reflection guidance will appear here.</p>
+                </div>
+            </div>
+
+            <div class="logo-placeholder" id="closePickerBtn" title="Back to Main Page">
+                <img src="file:\C:\Users\Admin\Downloads\tea_experience_works\images\44_logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teaData = {
+            "Chamomile": {
+                meaning: "The Spirit of Calm & Softness",
+                reflection: "Chamomile encourages gentle rest. Consider what worries you can safely put down right now, even if only for the duration of this cup."
+            },
+            "Lemon Balm": {
+                meaning: "The Spirit of Renewal & Ease",
+                reflection: "Lemon Balm lifts heavy thoughts. Reflect on one small thing today that brought a subtle sense of joy or light into your mind."
+            },
+            "Passionflower": {
+                meaning: "The Spirit of Deep Quiet & Harmony",
+                reflection: "Passionflower soothes quiet unrest. Give yourself permission to pause the mental search for answers and exist simply as you are."
+            },
+            "Green Tea": {
+                meaning: "The Spirit of Mindful Presence",
+                reflection: "Green Tea offers steady clarity. Notice your surroundings in this exact moment without judging them as good or bad."
+            }
+        };
+
+        const slider = document.getElementById('viewportSlider');
+        const swipeBtn = document.getElementById('swipeDownBtn');
+        const carouselTrigger = document.getElementById('carouselTrigger');
+        const pickerOverlay = document.getElementById('picker-overlay');
+        const pickerWrapper = document.getElementById('pickerWrapper');
+        const pickerSlots = document.querySelectorAll('.picker-word-slot');
+        const reflectionCard = document.getElementById('reflectionCard');
+        const reflectionTitle = document.getElementById('reflectionTitle');
+        const reflectionBody = document.getElementById('reflectionBody');
+        const closePickerBtn = document.getElementById('closePickerBtn');
+        const backToMainBtns = document.querySelectorAll('.back-to-main');
+        const soundscapePage = document.getElementById('soundscape-page');
+
+        function showSoundscape() {
+            slider.classList.add('show-soundscape');
+        }
+
+        // Resets soundscape page audio & scroll state when returning to main page
+        function resetSoundscapePage() {
+            const allAudios = document.querySelectorAll('.audio-element');
+            const allButtons = document.querySelectorAll('.play-btn');
+
+            allAudios.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+
+            allButtons.forEach(btn => {
+                btn.classList.remove('playing');
+            });
+
+            soundscapePage.scrollTop = 0;
+        }
+
+        function showMainPage() {
+            slider.classList.remove('show-soundscape');
+            closePicker();
+            resetSoundscapePage();
+        }
+
+        swipeBtn.addEventListener('click', showSoundscape);
+        backToMainBtns.forEach(btn => btn.addEventListener('click', showMainPage));
+
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        const mainPageEl = document.getElementById('main-page');
+        mainPageEl.addEventListener('touchstart', e => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        mainPageEl.addEventListener('touchend', e => {
+            touchEndY = e.changedTouches[0].screenY;
+            if (touchStartY - touchEndY > 50) {
+                showSoundscape();
+            }
+        }, { passive: true });
+
+        carouselTrigger.addEventListener('click', startPicker);
+        closePickerBtn.addEventListener('click', closePicker);
+
+        let isRolling = false;
+
+        function startPicker() {
+            if (isRolling) return;
+            isRolling = true;
+
+            pickerOverlay.classList.add('active');
+            pickerWrapper.classList.remove('shifted');
+            reflectionCard.classList.remove('show');
+            pickerSlots.forEach(slot => {
+                slot.classList.remove('active-roll', 'winner');
+            });
+
+            let currentIndex = 0;
+            let speed = 60;
+            let totalRolls = 20 + Math.floor(Math.random() * 10);
+            let currentRoll = 0;
+
+            function roll() {
+                pickerSlots.forEach(slot => slot.classList.remove('active-roll'));
+                pickerSlots[currentIndex].classList.add('active-roll');
+
+                currentRoll++;
+                if (currentRoll < totalRolls) {
+                    currentIndex = (currentIndex + 1) % pickerSlots.length;
+                    setTimeout(roll, speed);
+                } else {
+                    finalizeChoice(currentIndex);
+                }
+            }
+
+            roll();
+        }
+
+        function finalizeChoice(index) {
+            const selectedWord = pickerSlots[index].innerText;
+            const selectedData = teaData[selectedWord];
+
+            pickerSlots[index].classList.add('winner');
+
+            setTimeout(() => {
+                pickerWrapper.classList.add('shifted');
+                reflectionTitle.innerText = `${selectedWord} — ${selectedData.meaning}`;
+                reflectionBody.innerText = selectedData.reflection;
+                reflectionCard.classList.add('show');
+                isRolling = false;
+            }, 600);
+        }
+
+        function closePicker() {
+            pickerOverlay.classList.remove('active');
+        }
+
+        function toggleAudio(btn) {
+            const card = btn.closest('.tea-card');
+            const audio = card.querySelector('.audio-element');
+            const allAudios = document.querySelectorAll('.audio-element');
+            const allButtons = document.querySelectorAll('.play-btn');
+
+            allAudios.forEach((a, i) => {
+                if (a !== audio) {
+                    a.pause();
+                    a.currentTime = 0;
+                    allButtons[i].classList.remove('playing');
+                }
+            });
+
+            if (audio.paused) {
+                if (audio.src && audio.src !== window.location.href) {
+                    audio.play();
+                    btn.classList.add('playing');
+                } else {
+                    alert("Please insert a valid MP3 file path in the soundscape <audio src='...'> tag.");
+                }
+            } else {
+                audio.pause();
+                btn.classList.remove('playing');
+            }
+        }
+    </script>
+</body>
+</html>
